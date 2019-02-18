@@ -1,17 +1,21 @@
 #include <iostream>
 using namespace std;
 
-int CONSTANTS[] = {0,6,8,9,6,11,11,6,12,13,6,13,8,6,15,15,6,8,15,6}; // константы
-
 class Square {
     public:
     Square(int sideLength) {
         sideLen = sideLength;
-        minCount = CONSTANTS[(sideLength - 1) / 2];
+        MAX_LIMIT = 20;// верхняя граница
         
         //выделение памяти
-        answerArr = new Data*[CONSTANTS[(sideLength - 1) / 2]];
+        answerArr = new Data*[MAX_LIMIT];
         SQUARE = new int*[sideLength];
+        
+        for (int i = 0; i < MAX_LIMIT; i++) {
+            Data* d = new Data();
+            answerArr[i] = d;
+        }
+        
         for(int i = 0; i < sideLength; i++) {
             SQUARE[i] = new int[sideLength];
             for (int j = 0;j < sideLength; j++)
@@ -22,17 +26,21 @@ class Square {
     void printResult() {
         if (sideLen % 2){ // если сторона не кратна 2м
             if (!(sideLen % 3))
-                subLen = 2 * sideLen / 3;
+            subLen = 2 * sideLen / 3;
             else if (!(sideLen % 5))
-                subLen = 3 * sideLen / 5;
+            subLen = 3 * sideLen / 5;
             else
-                subLen = (sideLen + 1) / 2;
+            subLen = (sideLen + 1) / 2;
             
-            searchSubSquares(SQUARE, subLen, 0, 0, 0, exitFlag);
-            cout << minCount << endl;
-            for (int i=0; i < CONSTANTS[(sideLen - 1) / 2]; i++) {
-                cout << answerArr[i]->x << " " << answerArr[i]->y << " " << answerArr[i]->length << endl;
+            searchSquares(SQUARE,subLen, 0, 0, MAX_LIMIT,color);
+            
+            cout << MAX_LIMIT << endl;
+            for (int i=0; i < MAX_LIMIT; i++) {
+                cout << answerArr[i]->x << " " << answerArr[i]->y << " " << answerArr[i]->length << "\n";
+                
+                if(answerArr[i+1]->length == 0) break;
             }
+            
         }
         else{ // если сторона кратна 2м
             subLen = sideLen / 2;
@@ -41,12 +49,12 @@ class Square {
     }
     
     void clearMemory() {
-        for(int i = 0; i < CONSTANTS[(sideLen - 1) / 2]; i++)
-            delete [] answerArr[i];
+        for(int i = 0; i < MAX_LIMIT; i++)
+        delete [] answerArr[i];
         delete [] answerArr;
         
         for(int i = 0; i < sideLen; i++)
-            delete[] SQUARE[i];
+        delete[] SQUARE[i];
         delete[] SQUARE;
     }
     
@@ -59,13 +67,13 @@ class Square {
     
     private:
     int sideLen; // длина стороный квадарата
-    //int* dataArr; // массив [x, y, side]...[]
     Data** answerArr;
     int** SQUARE; // основной квадрат
-    int color = 0; // цвет раскраски (количестов цветов должно быть меньше минимального количества подквадратов)
+    int color = 0; // цвет раскраски (количестов цветов должно быть равно минимальному количеству приближений)
     bool exitFlag = false; // условие выхода
-    int minCount; // минимальное количество подквадратов
-    int subLen; // длина стороны первого подквадрата
+    int subLen; // длина стороны первого приближения
+    
+    int MAX_LIMIT; // верхняя граница приближений
     
     void evenSide(int size,int x,int y){
         printf("4\n%d %d %d\n", x, y, size);
@@ -74,66 +82,99 @@ class Square {
         printf("%d %d %d\n", x+size, y+size, size);
     }
     
-    inline void searchSubSquares(int** SQUARE, //основной квадрат (матрица с цветами)
-                                 int subLen, // длина стороны подквадрата
-                                 int x, int y, // координаты подквадрата
-                                 int color, // цвет раскраски
-                                 bool &exitFlag) {
+    
+    inline void searchSquares(int** SQUARE, // главная область
+                       int currentLen, // сторона приближения
+                       int x,int y, // координаты приближения
+                       int &squaresCount, // минимальное кол-во приближений
+                       int color // текущий цвет
+    ){ //
         
-        //условия выхода
-        if (exitFlag || color == minCount || x+subLen > sideLen || y+subLen > sideLen) return;
-        for (int j = y; j < y+subLen; j++)
-            if (SQUARE[x][j] != 0) return; // если подквадрат уже закрашен
+        if (color >= squaresCount) //Если кол-во итераций превысило минимум, выходим
+        return;
         
-        //сохранение подквадрата
-        Data* d = new Data();
-        d->x = x+1;
-        d->y = y+1;
-        d->length = subLen;
-        answerArr[color] = d;
+        //приближение выходит за границу квадрата
+        if (x + currentLen > sideLen || y + currentLen > sideLen)
+        return;
         
-        //раскраска
+        //закраска попдает на уже закаршенную область
+        for (int j = y;j<y+currentLen;j++)  if (SQUARE[x][j] != 0)
+        return;
+        
+        // Смена цвета
         color++;
-        for (int i = x;i<x+subLen;i++)
-            for (int j = y; j < y+subLen; j++)
-                SQUARE[i][j] = color;
         
+        //Закраска квадрата
+        for (int i = x;i < x + currentLen; i++) for (int j = y;j < y + currentLen; j++)
+        SQUARE[i][j] = color;
         
-        // поиск начала нового подквадрата / выход
-        int k = x,m = y;
-        for (struct {int i=0; bool flag = true;} s; s.i<sideLen, s.flag;s.i++) for (int j=0;j<sideLen;j++) {
-                if (SQUARE[s.i][j] == 0){
-                    x = s.i;
-                    y = j;
-                    s.flag = false;
+        int nx = x,ny = y; // запоминаем для возврата, если новое приближение не подойдет
+        bool flag = true; //усли начало следующего приближения найдено
+        
+        for (int i=0;i<sideLen;i++){
+            if (!flag) break; // выходим, если найдено новое приближение
+            
+            for (int j=0;j<sideLen;j++){
+                
+                //Если находим пустое место то запоминаем координаты, идем по квадрату слева направо сверху вниз
+                if (SQUARE[i][j] == 0){
+                    x = i;y = j;
+                    flag = false;
                     break;
                 }
-                if (s.i == sideLen-1 && j == sideLen-1){
-                    if (minCount == color){
-                        exitFlag = true;
-                        s.flag = false;
-                        break;
+                
+                // Если квадрат полность закрашен и количество цветов < количества приближений
+                if (i == sideLen-1 && j == sideLen-1 && squaresCount > color){
+                    cout << color << endl;
+                    int len = 0; // ширина приближения
+                    int numb = 1; // цвет за пределами приближения
+                    int index = 0;
+                    
+                    //заполнение данных в массив (индексы углов и размеры квадратов)
+                    for (int i=0;i<sideLen;i++){
+                        for (int j=0;j<sideLen;j++){
+                            if (SQUARE[i][j] == numb){
+                                answerArr[index]->x = i+1;
+                                answerArr[index]->y = j+1;
+                                int z = j;
+                                while(SQUARE[i][z]==numb){
+                                    len++;
+                                    z++;
+                                }
+                                answerArr[index]->length = len;
+                                index++;
+                                len = 0;
+                                numb++;
+                            }
+                        }
                     }
+                    squaresCount = color;
+                    flag = false;
+                    break;
                 }
             }
-        
-        
-        int minLen = min(sideLen-x,sideLen-y);
-        if ((x == (sideLen+1)/2 && y == 0) || (x == 0 && y == (sideLen+1)/2))
-            searchSubSquares(SQUARE,minLen,x,y,color,exitFlag);
-        else
-            for (int i=minLen;i>0;i--){
-                searchSubSquares(SQUARE,i,x,y,color,exitFlag);
         }
         
-        for (int i = k;i<k+subLen;i++)
-            for (int j = m;j<m+subLen;j++)
-                SQUARE[i][j] = 0;
+        // максимальный новый квадрат
+        int subSquareLen = min(sideLen-x,sideLen-y);
+        
+        //максимальный квадрат берется для данных координат
+        if ((x == (sideLen+1)/2 && y == 0) || (x == 0 && y == (sideLen+1)/2))
+        searchSquares(SQUARE,subSquareLen, x,y,squaresCount,color);
+        
+        //в другом случае
+        else for (int i=subSquareLen;i>0;i--){
+            searchSquares(SQUARE,i,x,y,squaresCount,color);
+        }
+        //удаление неудовлетворяющих квадратов
+        for (int i = nx;i<nx+currentLen;i++) for (int j = ny;j<ny+currentLen;j++)
+        SQUARE[i][j] = 0;
     }
+    
 };
 
 int main() {
-    cout << "Enter side length: ";
+    //cout << "Enter side length: ";
     int n;
     cin >> n;
     
@@ -144,6 +185,6 @@ int main() {
     
     Square s = Square(n);
     s.printResult();
-    
     return 0;
 }
+
