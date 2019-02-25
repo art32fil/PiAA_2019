@@ -41,7 +41,6 @@ int main() {
     vector<ways> ways;          //Массив путей
     vector<char> answer;        //Массив ответов
     vector<fork> massOfForks;   //Массив развилок (непосещенных вершин)
-    int indInForks = 0;         //Индекс в массиве развилок
     
     //bool firstFlag = true;
     
@@ -116,18 +115,16 @@ int main() {
                 } else {              //Если для данной стартовой позиции уже было записано значение в ответ, заносим данное состояние в массив непосещенных вершин
                     massOfForks.push_back({ways[i].finPos, answer.size()});
                     if(ansWay.len > ways[i].len){ //Если данная вершина имеет меньшую длинну, чем первая посещенная, меняем ее местами с вершиной из ответа
-                        massOfForks[indInForks] = {ansWay.finPos, answer.size()};
+                        massOfForks[massOfForks.size()-1] = {ansWay.finPos, answer.size()};
                         ansWay = ways[i];
                     }
-                    indInForks++; //Увеличиваем индекс массива непосещенных вершин
                 }
             }
         }
         if(firstFlag){ //Если не было найдено ни одного возможного пути, возвращаемся к первой развилке и убираем ее из массива непосещенных вершин, продолжая путь с нее
-            answer.erase(answer.begin() + massOfForks[indInForks-1].ind, answer.begin() + answer.size());
-            answer.push_back(massOfForks[indInForks-1].symbol);
+            answer.erase(answer.begin() + massOfForks[massOfForks.size()-1].ind, answer.begin() + answer.size());
+            answer.push_back(massOfForks[massOfForks.size()-1].symbol);
             massOfForks.erase(massOfForks.begin() + (massOfForks.size()-1));
-            indInForks--;
         } else { //Если был найден путь, заносим его в массив ответов
             answer.push_back(ansWay.finPos);
             firstFlag = true;

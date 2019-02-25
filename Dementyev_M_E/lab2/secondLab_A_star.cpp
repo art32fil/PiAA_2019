@@ -50,7 +50,6 @@ int main() {
     answer.len = 0;
     realAnswer.len = 1000;
     vector<fork> massOfForks;
-    int indInForks = 0;
     
     //bool firstFlag = true;
     
@@ -131,10 +130,9 @@ int main() {
                 } else {
                     massOfForks.push_back({ways[i].finPos, answer.ans.size(), ways[i].len});
                     if((int)(ansWay.finPos) - (int)(start_finish.finish) < (int)(ways[i].finPos) - (int)(start_finish.finish)){
-                        massOfForks[indInForks] = {ansWay.finPos, answer.ans.size(), ansWay.len};
+                        massOfForks[massOfForks.size()-1] = {ansWay.finPos, answer.ans.size(), ansWay.len};
                         ansWay = ways[i];
                     }
-                    indInForks++;
                 }
             }
         }
@@ -145,28 +143,17 @@ int main() {
                 if(answer.len < realAnswer.len){    //Если временный ответ меньше минимального, присваиваем минимальному временный
                     realAnswer = answer;
                 }
-                for (unsigned long i = massOfForks[indInForks-1].ind; i < answer.lenMass.size(); i++){  //Во время очистки массива ответов вполоть до первой развилки, уменьшаем длинну пути.
-                    answer.len -= answer.lenMass[i];
-                }   //Продолжаем путь с первой развилки, обрезая справа массив ответов и удаляю последнюю развилку из массива непосещенных вершин
-                answer.ans.erase(answer.ans.begin() + massOfForks[indInForks-1].ind, answer.ans.begin() + answer.ans.size());
-                answer.lenMass.erase(answer.lenMass.begin() + massOfForks[indInForks-1].ind, answer.lenMass.begin() + answer.lenMass.size());
-                answer.ans.push_back(massOfForks[indInForks-1].symbol);
-                answer.lenMass.push_back(massOfForks[indInForks-1].len);
-                answer.len += massOfForks[indInForks-1].len;
-                massOfForks.erase(massOfForks.begin() + (massOfForks.size()-1));
-                indInForks--;
-            } else {    //Если мы не в конечной вершине
-                for (unsigned long i = massOfForks[indInForks-1].ind; i < answer.lenMass.size(); i++){ //Во время очистки массива ответов вполоть до первой развилки, уменьшаем длинну пути.
-                    answer.len -= answer.lenMass[i];
-                } //Продолжаем путь с первой развилки, обрезая справа массив ответов и удаляю последнюю развилку из массива непосещенных вершин
-                answer.ans.erase(answer.ans.begin() + massOfForks[indInForks-1].ind, answer.ans.begin() + answer.ans.size());
-                answer.lenMass.erase(answer.lenMass.begin() + massOfForks[indInForks-1].ind, answer.lenMass.begin() + answer.lenMass.size());
-                answer.ans.push_back(massOfForks[indInForks-1].symbol);
-                answer.lenMass.push_back(massOfForks[indInForks-1].len);
-                answer.len += massOfForks[indInForks-1].len;
-                massOfForks.erase(massOfForks.begin() + (massOfForks.size()-1));
-                indInForks--;
             }
+            for (unsigned long i = massOfForks[massOfForks.size()-1].ind; i < answer.lenMass.size(); i++){  //Во время очистки массива ответов вполоть до первой развилки, уменьшаем длинну пути.
+                answer.len -= answer.lenMass[i];
+            }   //Продолжаем путь с первой развилки, обрезая справа массив ответов и удаляю последнюю развилку из массива непосещенных вершин
+            answer.ans.erase(answer.ans.begin() + massOfForks[massOfForks.size()-1].ind, answer.ans.begin() + answer.ans.size());
+            answer.lenMass.erase(answer.lenMass.begin() + massOfForks[massOfForks.size()-1].ind, answer.lenMass.begin() + answer.lenMass.size());
+            answer.ans.push_back(massOfForks[massOfForks.size()-1].symbol);
+            answer.lenMass.push_back(massOfForks[massOfForks.size()-1].len);
+            answer.len += massOfForks[massOfForks.size()-1].len;
+            massOfForks.erase(massOfForks.begin() + (massOfForks.size()-1));
+            
         } else { //Если был найден путь, заносим его в массив ответов, увеличив при этом значение длинны
             answer.ans.push_back(ansWay.finPos);
             answer.lenMass.push_back(ansWay.len);
@@ -181,5 +168,6 @@ int main() {
     cout << endl;
     return 0;
 }
+
 
 
