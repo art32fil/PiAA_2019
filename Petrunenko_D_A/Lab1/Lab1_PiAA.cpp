@@ -1,16 +1,24 @@
 #include <iostream>
+#include <stdio.h>
+#include <fstream>
 using namespace std;
-
 class simpleNum{
 public:
     simpleNum(const int Num = 0) : N(Num), best(0), Best_mas(NULL){
-        Arr = new int*[(N/2)+1];
-        for(int i=0;i<(N/2)+1;i++){
-            Arr[i] = new int[(N/2)+1];
-                for(int j=0;j<(N/2)+1;j++)
+        Arr = new int*[N];
+        for(int i=0;i<N;i++){
+            Arr[i] = new int[N];
+                for(int j=0;j<N;j++)
                     Arr[i][j] = 0;}
-        Arr[0][0] = 1;
-        Arr[1][0] = 1;}
+        Best_mas = new int*[N];
+                for(int i=0;i<N;i++){
+                    Best_mas[i] = new int[N];
+                        for(int j=0;j<N;j++)
+                            Best_mas[i][j] = 0;}
+
+                Arr[0][0] = 1;
+                Arr[1][0] = 1;
+    }
 
     void cleanSQ(int **tmp, int x, int y){
         int n = tmp[y][x];
@@ -18,91 +26,72 @@ public:
             for(int j=x;j<n+x;j++)
                tmp[i][j] = 0;}
 
-    void Zero(int &x, int &y, int min){
-        while(Arr[y][x]!=0)
-            if((x+1)<(N/2)+1) x++;
-            else if(x==y) { WriteB(min);
-                break;}
-                 else{ x=0; if((y+1)<(N/2)+1) y++;}
-    }
-
     void WriteB(int min){
-        if(best==0) best = min;
-        if(best>min){ best = min;
-        if(Best_mas!=NULL) del(Best_mas, best);
-        Best_mas = new int*[best];
-            for(int i=0;i<best;i++)
-                Best_mas[i] = new int[3];
-        int **tmp = new int*[(N/2)+1];
-                for(int i=0;i<(N/2)+1;i++){
-                    tmp[i] = new int[(N/2)+1];
-                        for(int j=0;j<(N/2)+1;j++)
-                            tmp[i][j] = Arr[i][j];}
-            tmp[0][0] = 0;
-            tmp[1][0] = 0;
-            int k=0;
-            for(int i=0;i<(N/2)+1;i++)
-                for(int j=0;j<(N/2)+1;j++){
-                    if(tmp[i][j]!=0){
-                        Best_mas[k][0] = j;
-                        Best_mas[k][1] = i;
-                        Best_mas[k][2] = tmp[i][j];
-                        cleanSQ(tmp, j, i);
-                        k++;
-                        if(k==best) break;
-                    }
-                    if(k==best) break;
-                }
-            del(tmp, (N/2)+1);}
-    }
-
-    void find(int x, int y, int min) {
-        if(best!=0&&best<=min) return;
-        if(min>=(2*N-1)) return;
-        if((x>(N/2)+1)||y>(N/2)+1) return;
-       if(Arr[y][x]!=0) {
-       Zero(x, y, min);
-       if(x==y) {WriteB(min); return;}
-       }
-       int size = 0;
-       while(((x+size)<(N/2)+1)&&Arr[y][x+size]==0){
-           if((N/2)+1-y<size+1) break;
-           size++;}
-        int last_X = x, last_Y = y;
-       for(int k=size;k>=1;k--){
-        for(int i=last_Y;i<size+last_Y;i++)
-            for(int j=last_X;j<size+last_X;j++)
-                  Arr[i][j] = size;
-        ++min;
-        x = 0; y = 0;
-        Zero(x, y, min);
-        find(x, y, min);
-        cleanSQ(Arr, last_X, last_Y);
-        min--;
-        size--;
+        if(best==0||best>min){ best = min;
+                for(int i=0;i<N;i++)
+                        for(int j=0;j<N;j++)
+                            Best_mas[i][j] = Arr[i][j];
         }
     }
 
+    void fillM(int x,int y,int size, int** tmp){
+        for(int i=y;i<size+y;i++)
+            for(int j=x;j<size+x;j++)
+                tmp[i][j] = size;
+    }
+
+    void find(int min, int Sq) {
+        if(Sq==0){
+            WriteB(min);
+            return;  }
+        if(best!=0&&best<=min) return;
+        if(min>=(2*N)) return;
+        int S_size = N-1, size = 0;
+        for(int i=0;i<N;i++)
+            for(int j=0;j<N;j++)
+                if(Arr[i][j]==0){
+                    while((size+j<N)&&Arr[i][size+j]==0){
+                               if(N-i<size+1) break;
+                               size++;}
+                   if(size>S_size) size = S_size;
+                        for(int k=size;k>=1;k--){
+                            fillM(j, i, k, Arr);
+                            ++min;
+                            find(min, Sq-k*k);
+                            cleanSQ(Arr, j, i);
+                            min--;
+                            size--;
+
+                }
+                        return;
+         }
+        return;
+    }
+
     void print(){
-            cout<<"1 "<<"1 "<<(N/2)+1<<endl;
-            cout<<1+(N/2)+1<<" 1 "<<N/2<<endl;
-            cout<<"1 "<<1+(N/2)+1<<" "<<N/2<<endl;
-            cout<<1+(N/2)<<" "<<1+(N/2)+1<<" 1"<<endl;
-            for(int i=0;i<best;i++)
-                cout<<Best_mas[i][0]+(N/2)+1<<" "<<Best_mas[i][1]+(N/2)+1<<" "<<Best_mas[i][2]<<endl;
+        cout<<"1 "<<"1 "<<N<<endl;
+        cout<<1+N<<" 1 "<<N-1<<endl;
+        cout<<"1 "<<N+1<<" "<<N-1<<endl;
+        Best_mas[0][0] = 0;
+        for(int i=0;i<N;i++)
+            for(int j=0;j<N;j++){
+                if(Best_mas[i][j]!=0){
+                    cout<<j+N<<" "<<i+N<<" "<<Best_mas[i][j]<<endl;
+                    cleanSQ(Best_mas, j, i);}
+            }
         }
 
     void del(int ** Del_mas, int n){
         for(int i=0;i<n;i++)
             delete [] Del_mas[i];
-        delete [] Del_mas;}
-
-    ~simpleNum(){
-    del(Arr, (N/2)+1);
-    del(Best_mas, best);
+        delete [] Del_mas;
     }
-    int Best(){return best;}
-
+    ~simpleNum(){
+    del(Arr, N);
+    del(Best_mas, N);}
+    int Best(){
+        return best;
+    }
 private:
     int ** Best_mas;
     int best;
@@ -140,6 +129,7 @@ cout<<i<<" "<<i+N/2<<" "<<N/2<<endl;
 cout<<i+N/2<<" "<<i<<" "<<N/2<<endl;
 cout<<i+N/2<<" "<<i+N/2<<" "<<N/2<<endl;}
 
+
 int main(){
     int N;
     cin>>N;
@@ -148,10 +138,10 @@ int main(){
     else if(N%3==0) multiple3(N);
         else if(N%5==0) multiple5(N);
                 else{
-    simpleNum A(N);
-    A.find(1, 0, 0);
-    cout<<A.Best()+4<<endl;
-    A.print();}
+        simpleNum A(N/2+1);
+        A.find(0, (N/2+1)*(N/2+1)-2);
+        cout<<A.Best()+4<<endl;
+        A.print();}
     }else cout<<"Wrong N!"<<endl;
     return 0;
 }
