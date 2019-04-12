@@ -43,31 +43,13 @@ vector<int> findSubstr_KMP(string &text, string &pattern)
 
 int check_isShiftedString(string &shifted, string &original)
 {
-    string concatinated = shifted + "@" + original;
-    vector<int> PF_values = prefix_func(concatinated);
-    int index = PF_values[PF_values.size() - 1];
-
-    for (int i = index; i < shifted.size(); i++)
-        if (shifted[i] != original[i - index])
-            return -1;
-    return index;
+    string double_shifted = shifted + shifted;
+    vector<int> original_indexes = findSubstr_KMP(double_shifted, original);
+    return (original_indexes.empty()) ? -1 : original_indexes[0];
 }
 
 int main()
 {
-    /*string text, pattern;
-
-    cin >> pattern >> text;
-
-    vector<int> substr_indexes = findSubstr_KMP(text, pattern);
-    if (substr_indexes.empty())
-        cout << "-1";
-    else
-    {
-        for (int i = 0; i < substr_indexes.size() - 1; i++)
-            cout << substr_indexes[i] << ",";
-        cout << substr_indexes[substr_indexes.size() - 1];
-    }*/
     string shifted, original;
 
     cin >> shifted >> original;
