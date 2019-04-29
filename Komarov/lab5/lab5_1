@@ -1,0 +1,121 @@
+1#include <iostream>
+#include <vector>
+#include <string>
+#include <cstring>
+#define alph 52
+
+using namespace std;
+
+struct Bohr {
+    int next_vrtx[alph];
+    int pattern_num;
+    bool flag;
+    int suff_link;
+    int auto_move[alph];
+    int par;
+    char symb;
+
+};
+
+vector<Bohr> bohr;
+vector<string> pattern;
+
+Bohr makeBohr(int p, char c) {
+    Bohr v;
+    memset(v.next_vrtx, -1, sizeof(v.next_vrtx));
+    v.flag = false;
+    v.suff_link = -1;
+    memset(v.auto_move, -1, sizeof(v.auto_move));
+    v.par = p;
+    v.symb = c;
+    v.suff_link = -1;
+    return v;
+}
+
+void initBohr() {
+    bohr.push_back(makeBohr(0, -1));
+}
+
+void addPatternToBohr(const string &s) {
+    int num = 0;
+    //добавление паттерна в бор
+    for (int i = 0; i < s.length(); i++) {
+        char ch = s[i] - 'A';//вычисляем символ
+        if (bohr[num].next_vrtx[ch] == -1) {
+            bohr.push_back(makeBohr(num, ch));//создаем новую вершину
+            bohr[num].next_vrtx[ch] = bohr.size() - 1;
+        }
+        num = bohr[num].next_vrtx[ch];
+    }
+    bohr[num].flag = true;
+    pattern.push_back(s);
+    bohr[num].pattern_num = pattern.size() - 1;
+}
+
+int getAutoMove(int v, char ch);
+
+int getSuffLink(int v) {//фун-я получения суфф. ссылки
+    if (bohr[v].suff_link == -1)//если нет суф. ссылки
+        if (v == 0 || bohr[v].par == 0)//если корень, или родитель корень, то суф ссылка на корень
+            bohr[v].suff_link = 0;
+        else
+            bohr[v].suff_link = getAutoMove(getSuffLink(bohr[v].par), bohr[v].symb);//то переходим к родителю и к его суф. ссылке
+    return bohr[v].suff_link;
+}
+
+int getAutoMove(int v, char ch) {//фун-я переход из состояния в состояния
+    if (bohr[v].auto_move[ch] == -1)//если не были там
+        if (bohr[v].next_vrtx[ch] != -1)//и есть путь
+            bohr[v].auto_move[ch] = bohr[v].next_vrtx[ch];//то идем сюда
+        else
+        if (v == 0)//пути нет
+            bohr[v].auto_move[ch] = 0;//остаемся тут
+        else
+            bohr[v].auto_move[ch] = getAutoMove(getSuffLink(v), ch);//если не в нулевой вершине, то идем по суф. ссылке
+    return bohr[v].auto_move[ch];
+}
+
+void check(int v, int i) {//проверяет дошли ли до конца паттерна(т.е. печатаем)
+    for (int u = v; u != 0; u = getSuffLink(u)) {
+        if (bohr[u].flag)
+            cout << i - pattern[bohr[u].pattern_num].length() + 1 << " " << bohr[u].pattern_num + 1 << endl;
+    }
+}
+
+void findAllPos(const string& s) {
+    int u = 0;
+    for (int i = 0; i < s.length(); i++) {
+        u = getAutoMove(u, s[i] - 'A');
+        check(u, i + 1);
+    }
+}
+
+int main()
+{
+    initBohr();
+    string text;
+    string pattern;
+    int n;
+    cin >> text >> n;
+
+    for (int i = 0; i < n; i++) {
+        cin >> pattern;
+        addPatternToBohr(pattern);
+    }
+
+    findAllPos(text);
+    //  system ("pause");
+    return 0;
+}/*
+abdba 5
+ac
+aca
+bc
+b
+ba
+abcba 5
+ac
+aca
+bc
+b
+ba */
