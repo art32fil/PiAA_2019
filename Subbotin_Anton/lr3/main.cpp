@@ -26,12 +26,12 @@ bool Compare(edge first, edge second)
 
 class Ford{
 public:
-    vector<edge> graph, easy; //Вектор, который получили, и удобный вектор с обратными путями (если не дубли)
-    char start, finish, now; //Исток, сток и текущая вершина
-    type count, help, min, sum;//Размеры векторов graph и easy, минимальный поток в пути и максимальный в сети
-    edge* elem; //Указатель для перемещения по вектору
-    vector <type> prices; //Вектор пропускных способностей отрезков пути
-    vector <edge*> way; //Сам путь. ЧТО БУДЕТ, ЕСЛИ ОТСОРТИРОВАТЬ ВЕКТОР?! (подозрение на ошибку) -- НЕТ, сортировка после
+    vector<edge> graph, easy;
+    char start, finish, now;
+    type count, help, min, sum;
+    edge* elem;
+    vector <type> prices;
+    vector <edge*> way;
     bool trouble;
 
     Ford(){
@@ -79,13 +79,13 @@ public:
 
     void Process(){
         if(*(elem->out) && !elem->checked){
-            elem->checked = true; //Но это же делаем ниже
+            elem->checked = true;
             for(type i(0); i < help; i++)
                 if(easy.at(i).tail == now)
-                    easy.at(i).checked = true;  //Почему при отметке graph не всё отмечается?
-            prices.push_back(*(elem->out));        //-- потому что путь В эту вершину, в стандартном случае,
-            way.push_back(elem);                  //есть только вспомогательный.
-            if(elem->tail != finish)               //НО МЫ ПОРТИМ, ВОЗМОЖНО, НУЖНЫЙ НАМ ПУТЬ? --ДА
+                    easy.at(i).checked = true;
+            prices.push_back(*(elem->out));
+            way.push_back(elem);
+            if(elem->tail != finish)
                 now = elem->tail;
             else{
                 min = 9999;
@@ -117,20 +117,20 @@ public:
         }
     }
 
-    struct edge* Headseeker(char head) //Можно тут проверять на checked
-    {                                  //А как насчёт помечать?
+    struct edge* Headseeker(char head)
+    {
         int i = 0;
         while(head != easy.at(i++).head);
         return &easy.at(i-1);
     }
 
-    void Checkfailer() //Но если сразу отметить - что будет?
+    void Checkfailer()
     {
         for(type i(0); i < help; i++)
             easy.at(i).checked = false;
     }
 
-    void Sub()  //Извлекаем правильно. Проверить, не попадают ли лишние node в вектор
+    void Sub()
     {
         struct edge* node;
         while(!way.empty()){
@@ -141,7 +141,7 @@ public:
         }
     }
 
-    void Out()    //С выводом всё хорошо? А если дубли путей?
+    void Out()
     {
         cout << sum << endl;
         if(count > 0)
@@ -166,7 +166,7 @@ public:
 int main()
 {
     Ford dot;
-    if(dot.count > 0 && dot.elem) //Но ведь выводить пути с 0 при этом - не грех!
+    if(dot.count > 0 && dot.elem)
         dot.Process();
     dot.Out();
     return 0;
